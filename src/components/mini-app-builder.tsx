@@ -33,6 +33,53 @@ interface Module {
   enabled: boolean;
 }
 
+interface Template {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  modules: string[];
+  previewImage?: string;
+}
+
+const starterTemplates: Template[] = [
+  {
+    id: 'empty',
+    name: 'Start from Scratch',
+    description: 'Empty canvas to build your custom mini app',
+    icon: <Plus className="w-6 h-6" />,
+    modules: []
+  },
+  {
+    id: 'nft-minting',
+    name: 'NFT Minting App',
+    description: 'Ready-to-use NFT minting interface',
+    icon: <Palette className="w-6 h-6" />,
+    modules: ['nft-minting', 'base-transactions']
+  },
+  {
+    id: 'dao-governance',
+    name: 'DAO Governance',
+    description: 'Voting and proposal management',
+    icon: <BarChart3 className="w-6 h-6" />,
+    modules: ['dao-governance', 'social-identity']
+  },
+  {
+    id: 'social-feed',
+    name: 'Social Cast Feed',
+    description: 'Personalized Farcaster feed and interactions',
+    icon: <Smartphone className="w-6 h-6" />,
+    modules: ['personalized-feed', 'social-identity']
+  },
+  {
+    id: 'profile-showcase',
+    name: 'Profile Module',
+    description: 'Social identity and profile management',
+    icon: <Users className="w-6 h-6" />,
+    modules: ['social-identity', 'analytics-dashboard']
+  }
+];
+
 const availableModules: Module[] = [
   {
     id: 'social-identity',
@@ -91,6 +138,18 @@ export default function MiniAppBuilder() {
   const [showPricing, setShowPricing] = useState(false);
   const [userTier, setUserTier] = useState<string | null>(null);
   const [canvasModules, setCanvasModules] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(true);
+
+  // Listen for preview events from canvas
+  React.useEffect(() => {
+    const handlePreviewEvent = (event: any) => {
+      setActiveTab('preview');
+    };
+    
+    window.addEventListener('openPreview', handlePreviewEvent);
+    return () => window.removeEventListener('openPreview', handlePreviewEvent);
+  }, []);
 
   const toggleModule = (moduleId: string) => {
     setModules(prev => 
@@ -120,6 +179,36 @@ export default function MiniAppBuilder() {
       return "Unlock EchoBuild to start creating your mini app";
     }
     return null;
+  };
+
+  const selectTemplate = (templateId: string) => {
+    const template = starterTemplates.find(t => t.id === templateId);
+    if (!template) return;
+
+    setSelectedTemplate(templateId);
+    setShowTemplateSelector(false);
+    
+    if (template.id === 'empty') {
+      // Start with empty canvas
+      setCanvasModules([]);
+    } else {
+      // Pre-populate canvas with template modules
+      const templateModules = template.modules.map((moduleId, index) => {
+        const moduleData = availableModules.find(m => m.id === moduleId);
+        if (!moduleData) return null;
+        
+        return {
+          id: `${moduleId}-${Date.now()}-${index}`,
+          name: moduleData.name,
+          type: moduleId,
+          position: { x: 50 + (index * 200), y: 50 + (index * 100) },
+          size: { width: 400, height: 350 },
+          config: {}
+        };
+      }).filter(Boolean);
+      
+      setCanvasModules(templateModules);
+    }
   };
 
   return (
@@ -169,6 +258,55 @@ export default function MiniAppBuilder() {
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
+        {/* Template Selector */}
+        {showTemplateSelector && hasAccess() && (
+          <Card className="bg-white border-blue-200 mb-6">
+            <CardHeader>
+              <CardTitle className="text-center">
+                Choose Your Starting Template
+              </CardTitle>
+              <p className="text-center text-slate-600">
+                Select a template to get started quickly, or start from scratch
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {starterTemplates.map((template) => (
+                  <Card
+                    key={template.id}
+                    className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+                      template.id === 'empty' 
+                        ? 'border-orange-300 bg-orange-50' 
+                        : 'border-blue-200 hover:border-blue-300'
+                    }`}
+                    onClick={() => selectTemplate(template.id)}
+                  >
+                    <CardContent className="p-4 text-center">
+                      <div className={`w-12 h-12 mx-auto mb-3 rounded-lg flex items-center justify-center ${
+                        template.id === 'empty' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+                      }`}>
+                        {template.icon}
+                      </div>
+                      <h3 className="font-medium text-slate-800 mb-2">{template.name}</h3>
+                      <p className="text-xs text-slate-600 mb-3">{template.description}</p>
+                      {template.modules.length > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {template.modules.length} modules
+                        </Badge>
+                      )}
+                      {template.id === 'empty' && (
+                        <Badge className="bg-orange-500 text-white text-xs">
+                          Recommended
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-slate-800 border-blue-600">
             <TabsTrigger value="builder" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
@@ -189,8 +327,26 @@ export default function MiniAppBuilder() {
                   <CardTitle className="text-slate-800 flex items-center">
                     <Settings className="w-5 h-5 mr-2 text-orange-500" />
                     {projectName} - Builder
+                    {selectedTemplate && (
+                      <Badge variant="outline" className="ml-3 text-xs">
+                        {starterTemplates.find(t => t.id === selectedTemplate)?.name}
+                      </Badge>
+                    )}
                   </CardTitle>
                   <div className="flex items-center space-x-3">
+                    {selectedTemplate && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setShowTemplateSelector(true);
+                          setSelectedTemplate(null);
+                        }}
+                        className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                      >
+                        Change Template
+                      </Button>
+                    )}
                     <Input
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
@@ -216,8 +372,9 @@ export default function MiniAppBuilder() {
                   projectName={projectName}
                   modules={canvasModules}
                   onRefresh={() => {
-                    // Refresh preview
-                    console.log('Refreshing preview...');
+                    // Force re-render by updating timestamp
+                    setCanvasModules(prev => [...prev]);
+                    console.log('Refreshing preview with', canvasModules.length, 'modules');
                   }}
                 />
               </CardContent>

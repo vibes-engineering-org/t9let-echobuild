@@ -4,6 +4,10 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
+import { Switch } from '~/components/ui/switch';
 import { 
   GripVertical, 
   Trash2, 
@@ -41,6 +45,7 @@ export default function DragDropCanvas({
   const [canvasModules, setCanvasModules] = useState<DragDropModule[]>([]);
   const [draggedModule, setDraggedModule] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [configModule, setConfigModule] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = (e: React.DragEvent, moduleId: string) => {
@@ -96,6 +101,20 @@ export default function DragDropCanvas({
 
   const removeModule = (moduleId: string) => {
     const updatedModules = canvasModules.filter(m => m.id !== moduleId);
+    setCanvasModules(updatedModules);
+    onCanvasModulesChange?.(updatedModules);
+  };
+
+  const openModuleConfig = (moduleId: string) => {
+    setConfigModule(moduleId);
+  };
+
+  const updateModuleConfig = (moduleId: string, newConfig: any) => {
+    const updatedModules = canvasModules.map(module =>
+      module.id === moduleId 
+        ? { ...module, config: { ...module.config, ...newConfig } }
+        : module
+    );
     setCanvasModules(updatedModules);
     onCanvasModulesChange?.(updatedModules);
   };
@@ -247,9 +266,19 @@ export default function DragDropCanvas({
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <Button size="sm" variant="outline" className="border-orange-500 text-orange-600">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                onClick={() => {
+                  // Trigger parent preview functionality
+                  window.dispatchEvent(new CustomEvent('openPreview', { 
+                    detail: { modules: canvasModules } 
+                  }));
+                }}
+              >
                 <Eye className="w-4 h-4 mr-2" />
-                Preview
+                Preview ({canvasModules.length})
               </Button>
             </div>
           </div>
@@ -257,10 +286,10 @@ export default function DragDropCanvas({
 
         <div
           ref={canvasRef}
-          className="w-full h-full bg-white relative pt-20"
+          className="w-full h-full bg-white relative pt-20 overflow-auto"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          style={{ minHeight: '600px' }}
+          style={{ minHeight: '600px', maxHeight: 'calc(100vh - 200px)' }}
         >
           {canvasModules.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -300,7 +329,11 @@ export default function DragDropCanvas({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="w-6 h-6 p-0 hover:bg-orange-100"
+                      className="w-6 h-6 p-0 hover:bg-orange-100 z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openModuleConfig(module.id);
+                      }}
                     >
                       <Settings className="w-3 h-3 text-orange-600" />
                     </Button>
@@ -316,7 +349,7 @@ export default function DragDropCanvas({
                 </div>
 
                 {/* Module Content */}
-                <div className="p-0" style={{ height: module.size.height - 40 }}>
+                <div className="p-0 overflow-y-auto" style={{ height: module.size.height - 40 }}>
                   {renderModuleContent(module)}
                 </div>
               </div>
@@ -324,6 +357,113 @@ export default function DragDropCanvas({
           )}
         </div>
       </div>
+
+      {/* Configuration Modal */}
+      {configModule && (
+        <Dialog open={!!configModule} onOpenChange={() => setConfigModule(null)}>
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <Settings className="w-5 h-5 mr-2 text-orange-500" />
+                Configure Module
+              </DialogTitle>
+            </DialogHeader>
+            
+            {(() => {
+              const currentModule = canvasModules.find(m => m.id === configModule);
+              if (!currentModule) return null;
+              
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="module-name">Module Name</Label>
+                    <Input
+                      id="module-name"
+                      value={currentModule.name}
+                      onChange={(e) => updateModuleConfig(currentModule.id, { name: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  {/* Module-specific configuration */}
+                  {currentModule.type === 'social-identity' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="show-profile"
+                          checked={currentModule.config.showProfile !== false}
+                          onCheckedChange={(checked) => updateModuleConfig(currentModule.id, { showProfile: checked })}
+                        />
+                        <Label htmlFor="show-profile">Show Profile</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="show-feed"
+                          checked={currentModule.config.showFeed !== false}
+                          onCheckedChange={(checked) => updateModuleConfig(currentModule.id, { showFeed: checked })}
+                        />
+                        <Label htmlFor="show-feed">Show Feed</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="show-social-graph"
+                          checked={currentModule.config.showSocialGraph !== false}
+                          onCheckedChange={(checked) => updateModuleConfig(currentModule.id, { showSocialGraph: checked })}
+                        />
+                        <Label htmlFor="show-social-graph">Show Social Graph</Label>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {currentModule.type === 'base-transactions' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="show-wallet"
+                          checked={currentModule.config.showWallet !== false}
+                          onCheckedChange={(checked) => updateModuleConfig(currentModule.id, { showWallet: checked })}
+                        />
+                        <Label htmlFor="show-wallet">Show Wallet</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="show-transactions"
+                          checked={currentModule.config.showTransactions !== false}
+                          onCheckedChange={(checked) => updateModuleConfig(currentModule.id, { showTransactions: checked })}
+                        />
+                        <Label htmlFor="show-transactions">Show Transactions</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="show-gas-tracker"
+                          checked={currentModule.config.showGasTracker !== false}
+                          onCheckedChange={(checked) => updateModuleConfig(currentModule.id, { showGasTracker: checked })}
+                        />
+                        <Label htmlFor="show-gas-tracker">Show Gas Tracker</Label>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end space-x-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setConfigModule(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={() => setConfigModule(null)}
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

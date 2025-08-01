@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Badge } from '~/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { useAccount, useBalance, useReadContract, useWriteContract } from 'wagmi';
+import { useAccount, useBalance, useReadContract, useWriteContract, useConnect, useDisconnect } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { formatEther, parseEther } from 'viem';
 import { ShowCoinBalance } from '~/components/show-coin-balance';
@@ -59,15 +59,18 @@ export default function BaseBlockchainModule({
   },
   onConfigChange 
 }: BaseBlockchainModuleProps) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, isConnecting } = useAccount();
   const { data: balance } = useBalance({ address, chainId: base.id });
+  const { connect, connectors, error: connectError, isError: isConnectError } = useConnect();
+  const { disconnect } = useDisconnect();
   const [activeTab, setActiveTab] = useState('wallet');
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [gasPrice, setGasPrice] = useState('0.0012');
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [connectionAttempted, setConnectionAttempted] = useState(false);
 
-  // Mock transaction data
-  const mockTransactions: Transaction[] = [
+  // Mock transaction data - moved outside useEffect to avoid dependency warning
+  const mockTransactions = React.useMemo<Transaction[]>(() => [
     {
       hash: '0x1a2b3c4d5e6f',
       type: 'sent',
@@ -98,11 +101,26 @@ export default function BaseBlockchainModule({
       status: 'confirmed',
       gasUsed: '150000'
     }
-  ];
+  ], []);
 
   useEffect(() => {
     setRecentTransactions(mockTransactions.slice(0, config.transactionLimit));
-  }, [config.transactionLimit]);
+  }, [config.transactionLimit, mockTransactions]);
+
+  const handleConnect = async () => {
+    setConnectionAttempted(true);
+    try {
+      const availableConnector = connectors.find(connector => connector.id === 'io.metamask') 
+        || connectors.find(connector => connector.id === 'walletConnect') 
+        || connectors[0];
+      
+      if (availableConnector) {
+        await connect({ connector: availableConnector });
+      }
+    } catch (error) {
+      console.error('Connection failed:', error);
+    }
+  };
 
   const handleConfigUpdate = (updates: any) => {
     const newConfig = { ...config, ...updates };
@@ -262,9 +280,19 @@ export default function BaseBlockchainModule({
                   <div className="bg-blue-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-slate-600">Wallet Address</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        Connected
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          Connected
+                        </Badge>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => disconnect()}
+                          className="text-xs border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          Disconnect
+                        </Button>
+                      </div>
                     </div>
                     <p className="font-mono text-sm text-slate-800 mb-4">
                       {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ''}
@@ -309,9 +337,65 @@ export default function BaseBlockchainModule({
                   <p className="text-slate-500 mb-6">
                     Connect your wallet to view balance and make transactions
                   </p>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Connect Wallet
-                  </Button>
+                  
+                  {isConnectError && connectError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                        <p className="text-sm text-red-600">
+                          {connectError.message.includes('rejected') 
+                            ? 'Connection rejected by user' 
+                            : connectError.message.includes('not found')
+                            ? 'No wallet found. Please install MetaMask or another wallet.'
+                            : 'Connection failed. Please try again.'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-3">
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={handleConnect}
+                      disabled={isConnecting}
+                    >
+                      {isConnecting ? (
+                        <>
+                          <Clock className="w-4 h-4 mr-2 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <Wallet className="w-4 h-4 mr-2" />
+                          Connect Wallet
+                        </>
+                      )}
+                    </Button>
+                    
+                    {connectionAttempted && !isConnected && !isConnecting && (
+                      <div className="text-sm text-slate-500">
+                        <p>Available connectors:</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {connectors.map((connector) => (
+                            <Button
+                              key={connector.id}
+                              size="sm"
+                              variant="outline"
+                              onClick={() => connect({ connector })}
+                              className="text-xs"
+                              disabled={isConnecting}
+                            >
+                              {connector.name}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-slate-400">
+                      Supports MetaMask, WalletConnect, and Farcaster Mini App
+                    </p>
+                  </div>
                 </div>
               )}
             </TabsContent>
