@@ -39,17 +39,17 @@ interface PricingTier {
 const pricingTiers: PricingTier[] = [
   {
     id: 'early-bird',
-    name: 'Early Bird Access',
-    price: 7.99,
+    name: 'Early Bird Pass',
+    price: 5.99,
     period: 'one-time',
-    description: 'Limited to the first 500 users - Early Bird Special',
+    description: 'Limited-time offer for first 500 users',
     features: [
-      'Lifetime access to all core builder modules',
-      'Echo Pioneer Badge for Farcaster & Base',
-      'Private beta channel for early features',
-      'Direct feedback loop with development team',
-      'Revenue share eligibility for templates',
-      'Early access to advanced modules'
+      'Lifetime access to core builder',
+      'Echo Pioneer Badge on Farcaster',
+      'Template revenue share eligibility',
+      'All 5 enhanced template modules',
+      'Private beta features access',
+      'Direct feedback to dev team'
     ],
     popular: true,
     earlyBird: true,
@@ -61,14 +61,14 @@ const pricingTiers: PricingTier[] = [
     name: 'Builder Pass',
     price: 12.99,
     period: 'one-time',
-    description: 'Full post-launch access with all features',
+    description: 'Full builder access with deployment tools',
     features: [
-      'All builder modules included',
-      'Deploy tools and GitHub integration',
-      'Custom templates and themes',
+      'All builder modules and templates',
+      'Deploy to Vercel and GitHub forking',
+      'Custom Module Builder access',
       'Community support and forums',
-      'Export to Vercel/GitHub',
-      'Access to add-ons and Studio features'
+      'Optional team workspace upgrades',
+      'Access to upcoming Studio features'
     ],
     icon: <Sparkles className="w-6 h-6" />,
     color: 'blue'
@@ -248,7 +248,7 @@ export default function PricingModal({ isOpen, onClose, onPurchase }: PricingMod
         </div>
         
         <div className="text-center text-sm text-slate-500 mt-6">
-          <p>Early Bird Goal: 500 users × $7.99 = ~$4,000 to fuel infrastructure & bug-fixing sprints</p>
+          <p>Early Bird Goal: 500 users × $5.99 = ~$3,000 to fuel infrastructure & template development</p>
         </div>
       </DialogContent>
     </Dialog>

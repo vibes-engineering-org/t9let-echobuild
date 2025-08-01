@@ -23,6 +23,7 @@ import {
 import DragDropCanvas from './drag-drop-canvas';
 import PricingModal from './pricing-modal';
 import LivePreview from './live-preview';
+import WalletConnectionHandler from './wallet-connection-handler';
 
 interface Module {
   id: string;
@@ -51,50 +52,98 @@ const starterTemplates: Template[] = [
     modules: []
   },
   {
+    id: 'game-app',
+    name: 'Game App Template',
+    description: 'Gamified apps with leaderboards, scoring, and cast integration',
+    icon: <Zap className="w-6 h-6" />,
+    modules: ['game-app-template']
+  },
+  {
+    id: 'encrypted-chat',
+    name: 'Encrypted Group Chat',
+    description: 'P2P messaging with wallet-bound access and token gating',
+    icon: <Users className="w-6 h-6" />,
+    modules: ['encrypted-chat-template']
+  },
+  {
+    id: 'custom-module-builder',
+    name: 'Custom Module Builder',
+    description: 'Visual no-code module creation with logic flow canvas',
+    icon: <Crown className="w-6 h-6" />,
+    modules: ['custom-module-builder-template']
+  },
+  {
+    id: 'ecommerce',
+    name: 'Ecommerce Template',
+    description: 'Product cards, cart drawer, and crypto checkout flow',
+    icon: <Coins className="w-6 h-6" />,
+    modules: ['ecommerce-template']
+  },
+  {
+    id: 'directory',
+    name: 'Directory Template',
+    description: 'List/grid toggle, ratings, and map integration',
+    icon: <BarChart3 className="w-6 h-6" />,
+    modules: ['directory-template']
+  },
+  {
     id: 'nft-minting',
     name: 'NFT Minting App',
     description: 'Ready-to-use NFT minting interface with Base integration',
     icon: <Palette className="w-6 h-6" />,
     modules: ['nft-minting', 'base-transactions']
-  },
-  {
-    id: 'dao-governance',
-    name: 'DAO Poll App',
-    description: 'Voting and proposal management for communities',
-    icon: <BarChart3 className="w-6 h-6" />,
-    modules: ['dao-governance', 'analytics-dashboard']
-  },
-  {
-    id: 'social-feed',
-    name: 'Cast Feed Module',
-    description: 'Personalized Farcaster feed and interactions',
-    icon: <Smartphone className="w-6 h-6" />,
-    modules: ['personalized-feed', 'social-identity']
-  },
-  {
-    id: 'custom-module-builder',
-    name: 'Custom Module Builder',
-    description: 'Create new modules from scratch using visual config panel',
-    icon: <Crown className="w-6 h-6" />,
-    modules: ['custom-builder']
-  },
-  {
-    id: 'game-app',
-    name: 'Game App Template',
-    description: 'Lightweight canvas for gamified apps with leaderboards',
-    icon: <Zap className="w-6 h-6" />,
-    modules: ['game-engine', 'analytics-dashboard']
-  },
-  {
-    id: 'encrypted-chat',
-    name: 'Encrypted Group Chat',
-    description: 'Peer-to-peer messaging with wallet-bound identity',
-    icon: <Users className="w-6 h-6" />,
-    modules: ['encrypted-messaging', 'social-identity']
   }
 ];
 
 const availableModules: Module[] = [
+  {
+    id: 'game-app-template',
+    name: 'Game App Template',
+    description: 'Complete game with leaderboard, scoring, and cast integration',
+    icon: <Zap className="w-5 h-5" />,
+    category: 'ui',
+    enabled: false
+  },
+  {
+    id: 'encrypted-chat-template',
+    name: 'Encrypted Group Chat',
+    description: 'P2P messaging with wallet-gated access and reactions',
+    icon: <Users className="w-5 h-5" />,
+    category: 'social',
+    enabled: false
+  },
+  {
+    id: 'custom-module-builder-template',
+    name: 'Custom Module Builder',
+    description: 'Visual logic flow canvas for creating custom modules',
+    icon: <Crown className="w-5 h-5" />,
+    category: 'ui',
+    enabled: false
+  },
+  {
+    id: 'ecommerce-template',
+    name: 'Ecommerce Template',
+    description: 'Product marketplace with crypto checkout and cart',
+    icon: <Coins className="w-5 h-5" />,
+    category: 'ui',
+    enabled: false
+  },
+  {
+    id: 'directory-template',
+    name: 'Directory Template',
+    description: 'Searchable directory with ratings and map integration',
+    icon: <BarChart3 className="w-5 h-5" />,
+    category: 'ui',
+    enabled: false
+  },
+  {
+    id: 'wallet-connection',
+    name: 'Wallet Connection',
+    description: 'Secure wallet integration with error handling',
+    icon: <Smartphone className="w-5 h-5" />,
+    category: 'blockchain',
+    enabled: false
+  },
   {
     id: 'nft-minting',
     name: 'NFT Minting',
@@ -104,67 +153,11 @@ const availableModules: Module[] = [
     enabled: false
   },
   {
-    id: 'dao-governance',
-    name: 'DAO Poll System',
-    description: 'Voting and proposal management for communities',
-    icon: <BarChart3 className="w-5 h-5" />,
-    category: 'blockchain',
-    enabled: false
-  },
-  {
-    id: 'personalized-feed',
-    name: 'Cast Feed',
-    description: 'Custom Farcaster feed and interactions',
-    icon: <Smartphone className="w-5 h-5" />,
-    category: 'social',
-    enabled: false
-  },
-  {
-    id: 'social-identity',
-    name: 'Profile Module',
-    description: 'Farcaster profile and social connections',
-    icon: <Users className="w-5 h-5" />,
-    category: 'social',
-    enabled: false
-  },
-  {
-    id: 'analytics-dashboard',
-    name: 'Analytics Dashboard',
-    description: 'User engagement and app metrics',
-    icon: <BarChart3 className="w-5 h-5" />,
-    category: 'analytics',
-    enabled: false
-  },
-  {
     id: 'base-transactions',
     name: 'Base Transactions',
     description: 'Display and track Base on-chain activity',
     icon: <Coins className="w-5 h-5" />,
     category: 'blockchain',
-    enabled: false
-  },
-  {
-    id: 'custom-builder',
-    name: 'Custom Module Builder',
-    description: 'Visual no-code module creation tool',
-    icon: <Crown className="w-5 h-5" />,
-    category: 'ui',
-    enabled: false
-  },
-  {
-    id: 'game-engine',
-    name: 'Game Engine',
-    description: 'Lightweight gamification and leaderboards',
-    icon: <Zap className="w-5 h-5" />,
-    category: 'ui',
-    enabled: false
-  },
-  {
-    id: 'encrypted-messaging',
-    name: 'Encrypted Chat',
-    description: 'P2P messaging with wallet authentication',
-    icon: <Users className="w-5 h-5" />,
-    category: 'social',
     enabled: false
   }
 ];

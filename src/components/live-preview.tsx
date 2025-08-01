@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';  
 import { Badge } from '~/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog';
 import FarcasterSocialModule from './modules/farcaster-social-module';
 import BaseBlockchainModule from './modules/base-blockchain-module';
 import { 
@@ -14,7 +15,9 @@ import {
   RotateCcw,
   ExternalLink,
   Code,
-  Eye
+  Eye,
+  Maximize,
+  Play
 } from 'lucide-react';
 
 interface PreviewModule {
@@ -29,15 +32,25 @@ interface LivePreviewProps {
   projectName: string;
   modules: PreviewModule[];
   onRefresh?: () => void;
+  showModal?: boolean;
+  onCloseModal?: () => void;
 }
 
 export default function LivePreview({ 
   projectName, 
   modules,
-  onRefresh 
+  onRefresh,
+  showModal = false,
+  onCloseModal 
 }: LivePreviewProps) {
   const [viewMode, setViewMode] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
   const [showCode, setShowCode] = useState(false);
+  const [renderKey, setRenderKey] = useState(0);
+
+  // Force re-render when modules change
+  useEffect(() => {
+    setRenderKey(prev => prev + 1);
+  }, [modules]);
 
   const getViewportDimensions = () => {
     switch (viewMode) {

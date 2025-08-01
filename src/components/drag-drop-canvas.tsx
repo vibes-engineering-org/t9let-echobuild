@@ -17,6 +17,12 @@ import {
 } from 'lucide-react';
 import FarcasterSocialModule from './modules/farcaster-social-module';
 import BaseBlockchainModule from './modules/base-blockchain-module';
+import GameAppTemplate from './templates/game-app-template';
+import EncryptedChatTemplate from './templates/encrypted-chat-template';
+import CustomModuleBuilderTemplate from './templates/custom-module-builder-template';
+import EcommerceTemplate from './templates/ecommerce-template';
+import DirectoryTemplate from './templates/directory-template';
+import WalletConnectionHandler from './wallet-connection-handler';
 
 interface DragDropModule {
   id: string;
@@ -127,6 +133,42 @@ export default function DragDropCanvas({
     };
 
     switch (module.type) {
+      case 'game-app-template':
+        return (
+          <div style={moduleStyle}>
+            <GameAppTemplate config={module.config} />
+          </div>
+        );
+      case 'encrypted-chat-template':
+        return (
+          <div style={moduleStyle}>
+            <EncryptedChatTemplate config={module.config} />
+          </div>
+        );
+      case 'custom-module-builder-template':
+        return (
+          <div style={moduleStyle}>
+            <CustomModuleBuilderTemplate config={module.config} />
+          </div>
+        );
+      case 'ecommerce-template':
+        return (
+          <div style={moduleStyle}>
+            <EcommerceTemplate config={module.config} />
+          </div>
+        );
+      case 'directory-template':
+        return (
+          <div style={moduleStyle}>
+            <DirectoryTemplate config={module.config} />
+          </div>
+        );
+      case 'wallet-connection':
+        return (
+          <div style={moduleStyle}>
+            <WalletConnectionHandler />
+          </div>
+        );
       case 'social-identity':
         return (
           <div style={moduleStyle}>
@@ -393,7 +435,7 @@ export default function DragDropCanvas({
                 onDragStart={(e) => handleDragStart(e, module.id)}
               >
                 {/* Module Header */}
-                <div className="flex items-center justify-between p-2 border-b border-slate-200 bg-slate-50 rounded-t-lg relative z-10">
+                <div className="flex items-center justify-between p-2 border-b border-slate-200 bg-slate-50 rounded-t-lg relative z-20">
                   <div className="flex items-center space-x-2">
                     <GripVertical className="w-4 h-4 text-slate-400 cursor-move" />
                     <span className="text-sm font-medium text-slate-700">{module.name}</span>
@@ -402,7 +444,7 @@ export default function DragDropCanvas({
                     <Button
                       size="sm"
                       variant="ghost" 
-                      className="w-6 h-6 p-0 hover:bg-orange-100 z-20 pointer-events-auto"
+                      className="w-6 h-6 p-0 hover:bg-orange-100 z-30 pointer-events-auto relative"
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -414,7 +456,7 @@ export default function DragDropCanvas({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="w-6 h-6 p-0 hover:bg-red-100 z-20 pointer-events-auto"
+                      className="w-6 h-6 p-0 hover:bg-red-100 z-30 pointer-events-auto relative"
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -427,7 +469,7 @@ export default function DragDropCanvas({
                 </div>
 
                 {/* Module Content */}
-                <div className="p-0 overflow-y-auto" style={{ height: module.size.height - 40 }}>
+                <div className="p-0 overflow-y-auto relative" style={{ height: module.size.height - 40, maxHeight: 'calc(100vh - 300px)' }}>
                   {renderModuleContent(module)}
                 </div>
               </div>
@@ -439,7 +481,7 @@ export default function DragDropCanvas({
       {/* Configuration Modal */}
       {configModule && (
         <Dialog open={!!configModule} onOpenChange={() => setConfigModule(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-50">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-[9999] pointer-events-auto fixed">
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 <Settings className="w-5 h-5 mr-2 text-orange-500" />
