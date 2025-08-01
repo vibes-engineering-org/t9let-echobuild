@@ -45,50 +45,56 @@ interface Template {
 const starterTemplates: Template[] = [
   {
     id: 'empty',
-    name: 'Start from Scratch',
-    description: 'Empty canvas to build your custom mini app',
+    name: 'Blank Canvas',
+    description: 'Start from scratch with complete creative freedom',
     icon: <Plus className="w-6 h-6" />,
     modules: []
   },
   {
     id: 'nft-minting',
     name: 'NFT Minting App',
-    description: 'Ready-to-use NFT minting interface',
+    description: 'Ready-to-use NFT minting interface with Base integration',
     icon: <Palette className="w-6 h-6" />,
     modules: ['nft-minting', 'base-transactions']
   },
   {
     id: 'dao-governance',
-    name: 'DAO Governance',
-    description: 'Voting and proposal management',
+    name: 'DAO Poll App',
+    description: 'Voting and proposal management for communities',
     icon: <BarChart3 className="w-6 h-6" />,
-    modules: ['dao-governance', 'social-identity']
+    modules: ['dao-governance', 'analytics-dashboard']
   },
   {
     id: 'social-feed',
-    name: 'Social Cast Feed',
+    name: 'Cast Feed Module',
     description: 'Personalized Farcaster feed and interactions',
     icon: <Smartphone className="w-6 h-6" />,
     modules: ['personalized-feed', 'social-identity']
   },
   {
-    id: 'profile-showcase',
-    name: 'Profile Module',
-    description: 'Social identity and profile management',
+    id: 'custom-module-builder',
+    name: 'Custom Module Builder',
+    description: 'Create new modules from scratch using visual config panel',
+    icon: <Crown className="w-6 h-6" />,
+    modules: ['custom-builder']
+  },
+  {
+    id: 'game-app',
+    name: 'Game App Template',
+    description: 'Lightweight canvas for gamified apps with leaderboards',
+    icon: <Zap className="w-6 h-6" />,
+    modules: ['game-engine', 'analytics-dashboard']
+  },
+  {
+    id: 'encrypted-chat',
+    name: 'Encrypted Group Chat',
+    description: 'Peer-to-peer messaging with wallet-bound identity',
     icon: <Users className="w-6 h-6" />,
-    modules: ['social-identity', 'analytics-dashboard']
+    modules: ['encrypted-messaging', 'social-identity']
   }
 ];
 
 const availableModules: Module[] = [
-  {
-    id: 'social-identity',
-    name: 'Social Identity',
-    description: 'Farcaster profile, followers, and social graph',
-    icon: <Users className="w-5 h-5" />,
-    category: 'social',
-    enabled: false
-  },
   {
     id: 'nft-minting',
     name: 'NFT Minting',
@@ -99,24 +105,32 @@ const availableModules: Module[] = [
   },
   {
     id: 'dao-governance',
-    name: 'DAO Governance',
-    description: 'Voting and proposal management',
+    name: 'DAO Poll System',
+    description: 'Voting and proposal management for communities',
     icon: <BarChart3 className="w-5 h-5" />,
     category: 'blockchain',
     enabled: false
   },
   {
     id: 'personalized-feed',
-    name: 'Personalized Feed',
-    description: 'Custom cast feed and interactions',
+    name: 'Cast Feed',
+    description: 'Custom Farcaster feed and interactions',
     icon: <Smartphone className="w-5 h-5" />,
+    category: 'social',
+    enabled: false
+  },
+  {
+    id: 'social-identity',
+    name: 'Profile Module',
+    description: 'Farcaster profile and social connections',
+    icon: <Users className="w-5 h-5" />,
     category: 'social',
     enabled: false
   },
   {
     id: 'analytics-dashboard',
     name: 'Analytics Dashboard',
-    description: 'User engagement and cast analytics',
+    description: 'User engagement and app metrics',
     icon: <BarChart3 className="w-5 h-5" />,
     category: 'analytics',
     enabled: false
@@ -127,6 +141,30 @@ const availableModules: Module[] = [
     description: 'Display and track Base on-chain activity',
     icon: <Coins className="w-5 h-5" />,
     category: 'blockchain',
+    enabled: false
+  },
+  {
+    id: 'custom-builder',
+    name: 'Custom Module Builder',
+    description: 'Visual no-code module creation tool',
+    icon: <Crown className="w-5 h-5" />,
+    category: 'ui',
+    enabled: false
+  },
+  {
+    id: 'game-engine',
+    name: 'Game Engine',
+    description: 'Lightweight gamification and leaderboards',
+    icon: <Zap className="w-5 h-5" />,
+    category: 'ui',
+    enabled: false
+  },
+  {
+    id: 'encrypted-messaging',
+    name: 'Encrypted Chat',
+    description: 'P2P messaging with wallet authentication',
+    icon: <Users className="w-5 h-5" />,
+    category: 'social',
     enabled: false
   }
 ];
@@ -372,8 +410,9 @@ export default function MiniAppBuilder() {
                   projectName={projectName}
                   modules={canvasModules}
                   onRefresh={() => {
-                    // Force re-render by updating timestamp
-                    setCanvasModules(prev => [...prev]);
+                    // Force re-render by updating timestamp and trigger state update
+                    const timestamp = Date.now();
+                    setCanvasModules(prev => prev.map(m => ({ ...m, _timestamp: timestamp })));
                     console.log('Refreshing preview with', canvasModules.length, 'modules');
                   }}
                 />

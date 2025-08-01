@@ -213,6 +213,77 @@ export default function DragDropCanvas({
             </div>
           </div>
         );
+      case 'custom-builder':
+        return (
+          <div className="p-4 bg-orange-50 rounded h-full">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-16 h-3 bg-orange-200 rounded"></div>
+              <div className="w-12 h-3 bg-orange-300 rounded"></div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="h-8 bg-orange-200 rounded"></div>
+              <div className="h-8 bg-orange-200 rounded"></div>
+              <div className="h-8 bg-orange-200 rounded"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full h-2 bg-orange-200 rounded"></div>
+              <div className="w-2/3 h-2 bg-orange-200 rounded"></div>
+            </div>
+            <div className="mt-4 p-2 bg-white rounded border">
+              <p className="text-xs text-slate-600">Custom Module Builder</p>
+              <p className="text-xs text-slate-500 mt-1">Visual no-code module creation</p>
+            </div>
+          </div>
+        );
+      case 'game-engine':
+        return (
+          <div className="p-4 bg-yellow-50 rounded h-full">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-20 h-3 bg-yellow-200 rounded"></div>
+              <div className="text-xs bg-yellow-300 px-2 py-1 rounded">Level 5</div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-white rounded p-2 text-center">
+                <div className="text-lg font-bold text-yellow-700">850</div>
+                <div className="text-xs text-slate-600">Score</div>
+              </div>
+              <div className="bg-white rounded p-2 text-center">
+                <div className="text-lg font-bold text-yellow-700">#3</div>
+                <div className="text-xs text-slate-600">Rank</div>
+              </div>
+            </div>
+            <div className="h-12 bg-yellow-200 rounded mb-2"></div>
+            <div className="mt-4 p-2 bg-white rounded border">
+              <p className="text-xs text-slate-600">Game Engine</p>
+              <p className="text-xs text-slate-500 mt-1">Gamification and leaderboards</p>
+            </div>
+          </div>
+        );
+      case 'encrypted-messaging':
+        return (
+          <div className="p-4 bg-indigo-50 rounded h-full">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-16 h-3 bg-indigo-200 rounded"></div>
+              <div className="w-8 h-3 bg-green-300 rounded"></div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-end">
+                <div className="bg-indigo-300 rounded-lg px-3 py-2 max-w-xs">
+                  <div className="w-20 h-2 bg-indigo-400 rounded"></div>
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="bg-slate-200 rounded-lg px-3 py-2 max-w-xs">
+                  <div className="w-16 h-2 bg-slate-400 rounded"></div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 p-2 bg-white rounded border">
+              <p className="text-xs text-slate-600">Encrypted Chat</p>
+              <p className="text-xs text-slate-500 mt-1">P2P messaging with wallet auth</p>
+            </div>
+          </div>
+        );
       default:
         return (
           <div className="p-4 bg-gray-50 rounded h-full flex items-center justify-center">
@@ -271,6 +342,8 @@ export default function DragDropCanvas({
                 variant="outline" 
                 className="border-orange-500 text-orange-600 hover:bg-orange-50"
                 onClick={() => {
+                  // Update canvas modules first to ensure sync
+                  onCanvasModulesChange?.(canvasModules);
                   // Trigger parent preview functionality
                   window.dispatchEvent(new CustomEvent('openPreview', { 
                     detail: { modules: canvasModules } 
@@ -320,7 +393,7 @@ export default function DragDropCanvas({
                 onDragStart={(e) => handleDragStart(e, module.id)}
               >
                 {/* Module Header */}
-                <div className="flex items-center justify-between p-2 border-b border-slate-200 bg-slate-50 rounded-t-lg">
+                <div className="flex items-center justify-between p-2 border-b border-slate-200 bg-slate-50 rounded-t-lg relative z-10">
                   <div className="flex items-center space-x-2">
                     <GripVertical className="w-4 h-4 text-slate-400 cursor-move" />
                     <span className="text-sm font-medium text-slate-700">{module.name}</span>
@@ -328,10 +401,11 @@ export default function DragDropCanvas({
                   <div className="flex items-center space-x-1">
                     <Button
                       size="sm"
-                      variant="ghost"
-                      className="w-6 h-6 p-0 hover:bg-orange-100 z-10"
+                      variant="ghost" 
+                      className="w-6 h-6 p-0 hover:bg-orange-100 z-20 pointer-events-auto"
                       onClick={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         openModuleConfig(module.id);
                       }}
                     >
@@ -340,8 +414,12 @@ export default function DragDropCanvas({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="w-6 h-6 p-0 hover:bg-red-100"
-                      onClick={() => removeModule(module.id)}
+                      className="w-6 h-6 p-0 hover:bg-red-100 z-20 pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        removeModule(module.id);
+                      }}
                     >
                       <Trash2 className="w-3 h-3 text-red-600" />
                     </Button>
@@ -361,7 +439,7 @@ export default function DragDropCanvas({
       {/* Configuration Modal */}
       {configModule && (
         <Dialog open={!!configModule} onOpenChange={() => setConfigModule(null)}>
-          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-50">
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 <Settings className="w-5 h-5 mr-2 text-orange-500" />
@@ -374,20 +452,21 @@ export default function DragDropCanvas({
               if (!currentModule) return null;
               
               return (
-                <div className="space-y-4">
+                <div className="space-y-6 py-2">
                   <div>
-                    <Label htmlFor="module-name">Module Name</Label>
+                    <Label htmlFor="module-name" className="text-sm font-medium text-slate-700">Module Name</Label>
                     <Input
                       id="module-name"
                       value={currentModule.name}
                       onChange={(e) => updateModuleConfig(currentModule.id, { name: e.target.value })}
-                      className="mt-1"
+                      className="mt-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
                   
                   {/* Module-specific configuration */}
                   {currentModule.type === 'social-identity' && (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-slate-800 border-b pb-2">Social Identity Settings</h3>
                       <div className="flex items-center space-x-2">
                         <Switch
                           id="show-profile"
@@ -416,7 +495,8 @@ export default function DragDropCanvas({
                   )}
                   
                   {currentModule.type === 'base-transactions' && (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-slate-800 border-b pb-2">Blockchain Settings</h3>
                       <div className="flex items-center space-x-2">
                         <Switch
                           id="show-wallet"

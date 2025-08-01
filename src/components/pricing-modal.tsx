@@ -39,17 +39,17 @@ interface PricingTier {
 const pricingTiers: PricingTier[] = [
   {
     id: 'early-bird',
-    name: 'Echo Pioneer',
-    price: 25,
+    name: 'Early Bird Access',
+    price: 7.99,
     period: 'one-time',
-    description: 'Limited to the first 500 Echo Pioneers',
+    description: 'Limited to the first 500 users - Early Bird Special',
     features: [
       'Lifetime access to all core builder modules',
-      'Priority feedback loop for future releases',
       'Echo Pioneer Badge for Farcaster & Base',
       'Private beta channel for early features',
+      'Direct feedback loop with development team',
       'Revenue share eligibility for templates',
-      'Early access to premium add-ons'
+      'Early access to advanced modules'
     ],
     popular: true,
     earlyBird: true,
@@ -57,37 +57,21 @@ const pricingTiers: PricingTier[] = [
     color: 'orange'
   },
   {
-    id: 'creator',
-    name: 'Creator Tier',
-    price: 35,
+    id: 'builder',
+    name: 'Builder Pass',
+    price: 12.99,
     period: 'one-time',
-    description: 'Perfect for individual creators and developers',
+    description: 'Full post-launch access with all features',
     features: [
       'All builder modules included',
       'Deploy tools and GitHub integration',
       'Custom templates and themes',
-      'Community support',
-      'Export to Vercel/GitHub'
+      'Community support and forums',
+      'Export to Vercel/GitHub',
+      'Access to add-ons and Studio features'
     ],
     icon: <Sparkles className="w-6 h-6" />,
     color: 'blue'
-  },
-  {
-    id: 'studio',
-    name: 'Studio Tier',
-    price: 8,
-    period: 'per month',
-    description: 'For teams and power users',
-    features: [
-      'Everything in Creator Tier',
-      'Advanced analytics dashboard',
-      'NFT and DAO integration tools',
-      'Live dashboard access',
-      'Priority support',
-      'Custom branding options'
-    ],
-    icon: <Users className="w-6 h-6" />,
-    color: 'purple'
   }
 ];
 
@@ -227,7 +211,7 @@ export default function PricingModal({ isOpen, onClose, onPurchase }: PricingMod
           </div>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 max-w-4xl mx-auto">
           {pricingTiers.map((tier) => (
             <PricingCard key={tier.id} tier={tier} />
           ))}
@@ -264,7 +248,7 @@ export default function PricingModal({ isOpen, onClose, onPurchase }: PricingMod
         </div>
         
         <div className="text-center text-sm text-slate-500 mt-6">
-          <p>🎯 Goal: 500 Early Bird users × $25 = $12,500 to fuel infrastructure & Base season activation</p>
+          <p>Early Bird Goal: 500 users × $7.99 = ~$4,000 to fuel infrastructure & bug-fixing sprints</p>
         </div>
       </DialogContent>
     </Dialog>
